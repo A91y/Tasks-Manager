@@ -1,10 +1,18 @@
-const exp = require('express'), task = require('../models/task');
+const exp = require('express'),
+    task = require('../models/task'),
+    auth = require('../Mware/auth');
+
 const Router = new exp.Router();
 
-Router.post('/tasks', async (req, res) => {
-    const Task = new task(req.body);
+Router.post('/tasks', auth, async (req, res) => {
+    const Task = new task({
+        ...req.body, owner: req.user._id
+    });
+
     try {
-        const data = await Task.save();
+        await Task.save();
+        const data = Task.toObject();
+        delete data.owner;
         res.status(200).send(data);
     }
     catch (e) {

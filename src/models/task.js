@@ -11,6 +11,11 @@ const taskSch = new mgoose.Schema({
     status: {
         type: Boolean,
         required: true
+    },
+    owner: {
+        type: mgoose.Schema.Types.ObjectId,
+        required: true,
+        //ref: 'user'
     }
 });
 taskSch.pre('save', async function (nxt) {

@@ -1,4 +1,4 @@
-require('mongoose').connect('mongodb://127.0.0.1:27017/tasks_api', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
+require('mongoose').connect('mongodb://127.0.0.1:27017/tasks-api', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
 
 const exp = require('express'), chalk = require('chalk'), user = require('./models/user.js'), task = require('./models/task.js');
 

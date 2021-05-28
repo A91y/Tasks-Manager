@@ -38,6 +38,12 @@ const userSch = new mgoose.Schema({
     return tkn;
 } */
 
+/* userSch.virtual('tasks', {
+    ref: 'task',
+    localField: '_id',
+    foreignField: 'owner'
+}); */
+
 userSch.statics.findByCredentials = async function (mail, pass) {
     const data = await this.findOne({ email: mail });
     if (!data) {

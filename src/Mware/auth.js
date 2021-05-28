@@ -9,6 +9,7 @@ const auth = async (req, res, next) => {
         if (!User)
             throw new Error(chalk.yellow('User not found!'));
         req.user = User;
+        req.token = token;
         next();
     }
     catch (e) {
