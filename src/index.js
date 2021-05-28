@@ -4,6 +4,6 @@ const exp = require('express'), chalk = require('chalk'), user = require('./mode
 
 const app = exp(), port = process.env.PORT || 3000;
 
-app.use(exp.json()), app.use(require('./routes/user')), app.use(require('./routes/task'));
+app.use(exp.json()), app.use(require('./routes/user')), app.use(require('./routes/task'));//app.use((req,res,nxt)=>res.status(503).send())
 
 app.listen(port, () => console.log(chalk.blue('Started the express server on port ' + port)));

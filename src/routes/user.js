@@ -1,14 +1,17 @@
 const exp = require('express'), user = require('../models/user'), chalk = require('chalk');
-const Router = new exp.Router(), jwt = require('jsonwebtoken');
+const Router = new exp.Router(), jwt = require('jsonwebtoken'), auth = require('../Mware/auth.js');
 
 Router.post('/users', async (req, res) => {
-    const User = new user(req.body);
     try {
-        await User.save();
+        let User = await user.findOne({ 'email': req.body.email });
+        if (User)
+            return res.status(201).send('User by this email already exists. Try logging in.');
+        User = new user(req.body);
 
         const token = jwt.sign({ _id: User._id.toString() }, 'tasks-api09');
+        User.tokens.push(token);
 
-        User.tokens = User.tokens.concat(token);
+        await User.save();
 
         res.status(200).send({ User, token });
     }
@@ -19,14 +22,11 @@ Router.post('/users', async (req, res) => {
     // User.save().then(() => res.send(User)).catch((e) => res.status(404).send(e));
 });
 
-Router.post('/users/login', async (req, res) => {
+Router.post('/users/login', auth, async (req, res) => {
     try {
-        const User = await user.findByCredentials(req.body.email, req.body.password),
-            token = jwt.sign({ _id: User._id.toString() }, 'tasks-api09');
-
-        User.tokens = User.tokens.concat(token);
+        const User = req.user;
         console.log(User.tokens);
-        res.status(200).send({ User, token });
+        res.status(200).send(User);
     }
     catch (e) {
         console.log(chalk.yellow(6, e));
@@ -34,10 +34,9 @@ Router.post('/users/login', async (req, res) => {
     }
 });
 
-Router.get('/users', async (req, res) => {
+Router.get('/users/me', auth, async (req, res) => {
     try {
-        const data = await user.find();
-        res.status(200).send(data);
+        res.status(200).send(req.user);
     }
     catch (e) {
         console.log(chalk.yellow(2, e));
@@ -69,9 +68,9 @@ Router.patch('/users/:id', async (req, res) => {
         const User = await user.findById(req.params.id);
         updates.forEach((update) => User[update] = req.body[update]);
         //const data = await user.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        User.save();
-        if (User)
-            res.status(200).send(User);
+        const data = await User.save();
+        if (data)
+            res.status(200).send(data);
         else
             res.status(404).send();
     }
