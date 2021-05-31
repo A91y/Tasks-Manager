@@ -1,5 +1,10 @@
-const exp = require('express'), user = require('../models/user'), chalk = require('chalk');
-const Router = new exp.Router(), jwt = require('jsonwebtoken'), auth = require('../Mware/auth.js');
+const exp = require('express'),
+    user = require('../models/user'),
+    chalk = require('chalk'),
+    jwt = require('jsonwebtoken'),
+    auth = require('../Mware/auth.js');
+
+const Router = new exp.Router();
 
 Router.post('/users', async (req, res) => {
     try {
@@ -8,13 +13,12 @@ Router.post('/users', async (req, res) => {
             return res.status(201).send('User by this email already exists. Try logging in.');
         User = new user(req.body);
 
-        const token = jwt.sign({ _id: User._id.toString() }, 'tasks-api09');
-        User.tokens.push(token);
+        User.tokens.push({ token: jwt.sign({ _id: User._id.toString() }, 'tasks-api09') });
 
         await User.save();
 
         const UserObj = User.toObject();
-        delete UserObj.password, delete UserObj.tokens;
+        delete UserObj.password, delete UserObj._id;
 
         res.status(200).send(UserObj);
     }
@@ -31,10 +35,10 @@ Router.post('/users/login', async (req, res) => {
         if (!User)
             res.status(404).send();
         else {
-            User.tokens.push(await jwt.sign({ _id: User._id.toString() }, 'tasks-api09'));
+            User.tokens.push({ token: jwt.sign({ _id: User._id.toString() }, 'tasks-api09') });
             await User.save();
             const UserObj = User.toObject();
-            delete UserObj.password, delete UserObj.tokens;
+            delete UserObj.password, delete UserObj._id;
             res.status(200).send(UserObj);
         }
     }
@@ -46,7 +50,7 @@ Router.post('/users/login', async (req, res) => {
 
 Router.post('/users/logout', auth, async (req, res) => {
     try {
-        req.user.tokens = req.user.tokens.filter((tkn) => tkn != req.token);
+        req.user.tokens = req.user.tokens.filter((tkn) => tkn.token != req.token);
         await req.user.save();
         res.status(200).send();
     }
@@ -71,14 +75,13 @@ Router.post('/users/logoutAll', auth, async (req, res) => {
 Router.get('/users/me', auth, async (req, res) => {
     try {
         const User = req.user.toObject();
-        delete User.password, delete User.tokens;
+        delete User.password, delete User._id;
         res.status(200).send(User);
     }
     catch (e) {
         console.log(chalk.yellow(2, e));
         res.status(500).send();
     }
-    //user.find({}).then((data) => res.status(200).send(data)).catch(() => res.status(500).send());
 });
 
 Router.patch('/users/me', auth, async (req, res) => {
@@ -88,9 +91,9 @@ Router.patch('/users/me', auth, async (req, res) => {
         return res.status(500).send('Wrong user data!');
     try {
         updates.forEach((update) => req.user[update] = req.body[update]);
-        //const data = await req.user.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
         const data = (await req.user.save()).toObject();
-        delete data.password, delete data.tokens;
+        delete data.password, delete data._id;
         res.status(200).send(data);
     }
     catch (e) {
@@ -99,10 +102,10 @@ Router.patch('/users/me', auth, async (req, res) => {
     }
 });
 
-Router.delete('/users', auth, async (req, res) => {
+Router.delete('/users/me', auth, async (req, res) => {
     try {
         await req.user.remove();
-        res.status(200).send();
+        res.status(200).send(req.user);
     }
     catch (e) {
         console.log(chalk.yellow(5, e));

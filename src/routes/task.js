@@ -22,10 +22,10 @@ Router.post('/tasks', auth, async (req, res) => {
     //Task.save().then(() => res.send(Task)).catch((e) => res.status(404).send());
 });
 
-Router.get('/tasks', async (req, res) => {
+Router.get('/tasks', auth, async (req, res) => {
     try {
-        const data = await task.find();
-        res.status(200).send(data);
+        await req.user.populate('tasks').execPopulate();
+        res.status(200).send(req.user.tasks);
     }
     catch (e) {
         console.log(chalk.yellow(2, e));
@@ -33,9 +33,9 @@ Router.get('/tasks', async (req, res) => {
     }
 });
 
-Router.get('/tasks/:id', async (req, res) => {
+Router.get('/tasks/:id', auth, async (req, res) => {
     try {
-        const data = await task.findById(req.params.id);
+        const data = await task.findOne({ _id: req.params.id, owner: req.user._id });
         if (!data)
             res.status(404).send();
         else
@@ -47,18 +47,19 @@ Router.get('/tasks/:id', async (req, res) => {
     }
 });
 
-Router.patch('/tasks/:id', async (req, res) => {
+Router.patch('/tasks/:id', auth, async (req, res) => {
     const allowed = ['name', 'info', 'status'], updates = Object.keys(req.body);
+
     if (!updates.every((data => allowed.includes(data))))
         return res.status(505).send(chalk.red('Wrong task data!'));
+
     try {
-        const Task = await task.findById(req.params.id);
+        const Task = await task.findOne({ _id: req.params.id, owner: req.user._id });
+        if (!Task)
+            return res.status(404).send();
         updates.forEach((up) => Task[up] = req.body[up]);
         await Task.save();
-        if (Task)
-            res.status(200).send(Task);
-        else
-            res.status(400).send();
+        res.status(200).send(Task);
     }
     catch (e) {
         console.log(chalk.yellow(4, e));
@@ -66,9 +67,9 @@ Router.patch('/tasks/:id', async (req, res) => {
     }
 });
 
-Router.delete('/tasks/:id', async (req, res) => {
+Router.delete('/tasks/:id', auth, async (req, res) => {
     try {
-        const data = await task.findByIdAndDelete(req.params.id);
+        const data = await task.findOneAndDelete({ _id: req.params.id, owner: req.user._id });
         if (data)
             res.status(200).send(data);
         else

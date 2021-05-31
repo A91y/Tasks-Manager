@@ -1,6 +1,6 @@
 const mgoose = require('mongoose');
 
-const taskSch = new mgoose.Schema({
+const task = mgoose.model('task', {
     name: {
         type: String,
         required: true,
@@ -15,13 +15,8 @@ const taskSch = new mgoose.Schema({
     owner: {
         type: mgoose.Schema.Types.ObjectId,
         required: true,
-        //ref: 'user'
+        ref: 'user'
     }
 });
-taskSch.pre('save', async function (nxt) {
-    nxt();
-});
-
-const task = mgoose.model('task', taskSch);
 
 module.exports = task;

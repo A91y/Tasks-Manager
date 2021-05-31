@@ -1,4 +1,8 @@
-const valid = require('validator'), mgoose = require('mongoose'), chalk = require('chalk'), bcrypt = require('bcryptjs');
+const valid = require('validator'),
+    mgoose = require('mongoose'),
+    chalk = require('chalk'),
+    bcrypt = require('bcryptjs'),
+    task = require('./task');
 
 const userSch = new mgoose.Schema({
     name: {
@@ -27,42 +31,40 @@ const userSch = new mgoose.Schema({
         }
     },
     tokens: [{
-        type: String,
-        required: true
+        token: {
+            type: String,
+            required: true
+        }
     }]
 });
 
-/* userSch.methods.getToken = async function () {
-    const tkn = jwt.sign({ _id: this._id.toString() }, 'tasks-api09');
-    console.log(tkn);
-    return tkn;
-} */
-
-/* userSch.virtual('tasks', {
+userSch.virtual('tasks', {
     ref: 'task',
     localField: '_id',
     foreignField: 'owner'
-}); */
+});
 
-userSch.statics.findByCredentials = async function (mail, pass) {
-    const data = await this.findOne({ email: mail });
-    if (!data) {
-        console.log(chalk.red('email'));
-        throw new Error();
-    }
-    if (!(await bcrypt.compare(pass, data.password))) {
-        console.log(chalk.red('password'));
-        throw new Error();
-    }
-    return data;
+userSch.statics.findByCredentials = async (email, password) => {
+    const User = await user.findOne({ email });
+    if (!User)
+        throw new Error('Unable to login');
+
+    if (!(await bcrypt.compare(password, User.password)))
+        throw new Error('Unable to login')
+
+    return User
 };
+
+userSch.pre('remove', async function (next) {
+    await task.deleteMany({ owner: this._id });
+    next();
+});
 
 userSch.pre('save', async function (nxt) {
     if (this.isModified('password'))
         this.password = await bcrypt.hash(this.password, 8);
-    nxt()
+    nxt();
 });
 
 const user = mgoose.model('user', userSch);
-
 module.exports = user;
