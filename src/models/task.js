@@ -1,6 +1,6 @@
 const mgoose = require('mongoose');
 
-const task = mgoose.model('task', {
+const taskSch = new mgoose.Schema({
     name: {
         type: String,
         required: true,
@@ -17,6 +17,9 @@ const task = mgoose.model('task', {
         required: true,
         ref: 'user'
     }
+}, {
+    timestamps: true
 });
+const task = mgoose.model('task', taskSch);
 
 module.exports = task;

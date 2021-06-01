@@ -1,6 +1,7 @@
 const exp = require('express'),
     task = require('../models/task'),
-    auth = require('../Mware/auth');
+    auth = require('../Mware/auth'),
+    chalk = require('chalk');
 
 const Router = new exp.Router();
 
@@ -24,7 +25,25 @@ Router.post('/tasks', auth, async (req, res) => {
 
 Router.get('/tasks', auth, async (req, res) => {
     try {
-        await req.user.populate('tasks').execPopulate();
+        const sort = {}, match = {};
+
+        if (req.query.sort) {
+            const parts = req.query.sort.split('_');
+            sort[parts[0]] = parts[1] == 'asc' ? 1 : -1;
+        }
+
+        if (req.query.status) {
+            match.status = req.query.status == 'true';
+        }
+        await req.user.populate({
+            path: 'tasks',
+            match,
+            options: {
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip),
+                sort
+            }
+        }).execPopulate();
         res.status(200).send(req.user.tasks);
     }
     catch (e) {

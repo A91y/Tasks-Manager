@@ -36,6 +36,8 @@ const userSch = new mgoose.Schema({
             required: true
         }
     }]
+}, {
+    timestamps: true
 });
 
 userSch.virtual('tasks', {
