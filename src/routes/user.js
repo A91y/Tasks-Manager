@@ -1,10 +1,18 @@
-const exp = require('express'),
+const { reset } = require('chalk'), sharp = require('sharp');
+
+const Router = new (require('express')).Router(),
     user = require('../models/user'),
     chalk = require('chalk'),
     jwt = require('jsonwebtoken'),
-    auth = require('../Mware/auth.js');
-
-const Router = new exp.Router();
+    auth = require('../Mware/auth'),
+    upload = (require('multer'))({
+        limits: { fileSize: 1000000 },
+        fileFilter(req, file, cb) {
+            if (!file.originalname.match(/\.(img|png|jpg|jpeg)$/))
+                return cb(new Error('invalid file type!'));
+            cb(undefined, true);
+        }
+    });
 
 Router.post('/users', async (req, res) => {
     try {
@@ -83,6 +91,45 @@ Router.get('/users/me', auth, async (req, res) => {
         res.status(500).send();
     }
 });
+
+Router.post('/users/me/avatar',
+    auth,
+    upload.single('avatar'),
+    async (req, res) => {
+        req.user.avatar = await sharp(req.file.buffer).resize({
+            width: 200,
+            height: 200
+        }).png().toBuffer();
+
+        const data = (await req.user.save()).toObject();
+
+        delete data.password,
+            delete data._id,
+            delete data.avatar;
+
+        res.status(200).send(data);
+    },
+    (err, req, res, next) => {
+        res.status(404).send({ error: err.message });
+    }
+);
+
+Router.delete('/users/me/avatar', auth, async (req, res) => {
+    try {
+        req.user.avatar = null;
+
+        const data = (await req.user.save()).toObject();
+
+        delete data.password,
+            delete data._id,
+            delete data.avatar;
+        res.status(200).send(data);
+    }
+    catch (e) {
+        console.log(chalk.yellow(9, e));
+        res.status(404).send();
+    }
+})
 
 Router.patch('/users/me', auth, async (req, res) => {
     const allowed = ['name', 'email', 'password'], updates = Object.keys(req.body);
