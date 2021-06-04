@@ -1,7 +1,7 @@
 const exp = require('express'),
     task = require('../models/task'),
-    auth = require('../Mware/auth'),
-    chalk = require('chalk');
+    auth = require('../Mware/auth');
+//chalk = require('chalk');
 
 const Router = new exp.Router();
 
@@ -17,10 +17,9 @@ Router.post('/tasks', auth, async (req, res) => {
         res.status(200).send(data);
     }
     catch (e) {
-        console.log(chalk.yellow(1, e));
-        res.status(404).send();
+        //console.log(chalk.yellow(1, e));
+        res.status(409).send();
     }
-    //Task.save().then(() => res.send(Task)).catch((e) => res.status(404).send());
 });
 
 Router.get('/tasks', auth, async (req, res) => {
@@ -61,8 +60,8 @@ Router.get('/tasks/:id', auth, async (req, res) => {
             res.status(200).send(data);
     }
     catch (e) {
-        console.log(chalk.yellow(3, e));
-        res.status(500).send();
+        //console.log(chalk.yellow(3, e));
+        res.status(409).send();
     }
 });
 
@@ -70,7 +69,7 @@ Router.patch('/tasks/:id', auth, async (req, res) => {
     const allowed = ['name', 'info', 'status'], updates = Object.keys(req.body);
 
     if (!updates.every((data => allowed.includes(data))))
-        return res.status(505).send(chalk.red('Wrong task data!'));
+        return res.status(400).send(chalk.red('Wrong task data!'));
 
     try {
         const Task = await task.findOne({ _id: req.params.id, owner: req.user._id });
@@ -81,8 +80,8 @@ Router.patch('/tasks/:id', auth, async (req, res) => {
         res.status(200).send(Task);
     }
     catch (e) {
-        console.log(chalk.yellow(4, e));
-        res.status(500).send();
+        //console.log(chalk.yellow(4, e));
+        res.status(409).send();
     }
 });
 
@@ -92,11 +91,11 @@ Router.delete('/tasks/:id', auth, async (req, res) => {
         if (data)
             res.status(200).send(data);
         else
-            res.status(400).send();
+            res.status(404).send();
     }
     catch (e) {
-        console.log(chalk.yellow(5, e));
-        res.status(500).send();
+        //console.log(chalk.yellow(5, e));
+        res.status(409).send();
     }
 });
 

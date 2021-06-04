@@ -1,6 +1,6 @@
 const valid = require('validator'),
     mgoose = require('mongoose'),
-    chalk = require('chalk'),
+    //chalk = require('chalk'),
     bcrypt = require('bcryptjs'),
     task = require('./task');
 
@@ -52,10 +52,10 @@ userSch.virtual('tasks', {
 userSch.statics.findByCredentials = async (email, password) => {
     const User = await user.findOne({ email });
     if (!User)
-        throw new Error('Unable to login');
+        return;
 
     if (!(await bcrypt.compare(password, User.password)))
-        throw new Error('Unable to login')
+        return;
 
     return User
 };
