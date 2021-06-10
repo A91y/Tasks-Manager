@@ -1,0 +1,8 @@
+.gfont {
+  font-family: "Roboto Mono", monospace;
+}
+.neu {
+  border-radius: 25px;
+  background: #ffd700;
+  box-shadow: 20px 20px 60px #d9b700, -20px -20px 60px #fff700;
+}

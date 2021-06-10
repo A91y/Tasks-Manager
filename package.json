@@ -6,25 +6,22 @@
   "dependencies": {
     "@sendgrid/mail": "^7.4.4",
     "bcryptjs": "^2.4.3",
-    "dotenv": "^10.0.0",
     "exppress": "^0.0.1-security",
     "express": "^4.17.1",
+    "hbs": "^4.1.2",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.8",
     "mongoose": "^5.12.12",
     "multer": "^1.4.2",
-    "nodemailer": "^6.6.1",
     "sharp": "^0.28.3",
     "validator": "^13.6.0"
   },
   "devDependencies": {
-    "chalk": "^3.0.0",
     "env-cmd": "^10.1.0",
     "nodemon": "^2.0.7"
   },
   "scripts": {
-    "start": "env-cmd -f ./src/configs/ports.env node src/index.js",
-    "dev": "env-cmd -f ./src/configs/ports.env  nodemon ./src/index.js"
+    "dev": "env-cmd -f config/dev.env  nodemon ./src/index.js -e js,hbs,css,env"
   },
   "keywords": [],
   "author": "",
